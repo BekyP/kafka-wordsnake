@@ -8,11 +8,17 @@ import org.springframework.stereotype.Component;
 @Component
 @ConfigurationProperties("app.consumer")
 public class KafkaConsumerConfig {
+
   /**
    * output file with snakes
    */
   private String outputFile;
 
+  /**
+   * consumer id
+   */
+
+  private String consumerId = "wordsnake-consumer";
   /**
    * test
    */

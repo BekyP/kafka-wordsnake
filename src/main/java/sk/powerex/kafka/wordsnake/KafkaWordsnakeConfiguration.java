@@ -58,9 +58,12 @@ public class KafkaWordsnakeConfiguration {
   <K, V> KafkaConsumer<K, V> kafkaConsumer() {
     Properties p = new Properties();
     p.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafka.getBootstrapServers());
-    p.put(ConsumerConfig.GROUP_ID_CONFIG, config.getApplicationId());
+    p.put(ConsumerConfig.GROUP_ID_CONFIG, consumerConfig.getConsumerId());
     p.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
     p.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
+
+    log.info("Consumer Configuration: \n\t{}",
+        p.entrySet().stream().map(Entry::toString).collect(joining("\n\t")));
 
     return new KafkaConsumer<>(p);
   }

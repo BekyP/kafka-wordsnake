@@ -12,4 +12,15 @@ app:
     error-topic: error
     allow-jammed-snake: true
   consumer:
+    consumer-id: wordsnake-consumer
     output-file: /tmp/wordsnakes/wordsnakes.txt
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+      base-path: "/"
+  endpoint:
+    health:
+      show-details: always
