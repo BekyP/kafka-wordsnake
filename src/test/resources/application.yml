@@ -1,0 +1,18 @@
+spring:
+  kafka:
+    bootstrap-servers:  ${test.kafka.brokers}
+    client-id: wordsnake-test
+
+app:
+  streams-config:
+    applicationId: wordsnake-0.1
+    inputTopic: input
+    outputTopic: output
+    allow-jammed-snake: true
+  consumer:
+    output-file: /tmp/wordsnakes.txt
+    test: true
+
+logging:
+  level:
+    root: info
