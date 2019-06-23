@@ -5,11 +5,14 @@ import static java.util.stream.Collectors.joining;
 import com.google.common.collect.ImmutableMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Properties;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.serialization.Serdes.StringSerde;
+import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.streams.StreamsConfig;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -27,10 +30,8 @@ import sk.powerex.kafka.wordsnake.config.KafkaConsumerConfig;
 @AllArgsConstructor
 public class KafkaWordsnakeConfiguration {
 
-  @Autowired
   private KafkaConfig config;
 
-  @Autowired
   private KafkaConsumerConfig consumerConfig;
 
   private final KafkaProperties kafka;
@@ -54,9 +55,21 @@ public class KafkaWordsnakeConfiguration {
 
 
   @Bean
+  <K, V> KafkaConsumer<K, V> kafkaConsumer() {
+    Properties p = new Properties();
+    p.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafka.getBootstrapServers());
+    p.put(ConsumerConfig.GROUP_ID_CONFIG, config.getApplicationId());
+    p.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
+    p.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
+
+    return new KafkaConsumer<>(p);
+  }
+
+
+  @Bean
   WordsnakeCreator wordsnakeCreator() {
     log.info("creating wordsnakeCreator with configuration: " + config);
-    WordsnakeCreator creator = new WordsnakeCreator(config,  kStreamsConfigs());
+    WordsnakeCreator creator = new WordsnakeCreator(config, kStreamsConfigs());
     creator.setupTopology();
 
     return creator;
@@ -65,7 +78,8 @@ public class KafkaWordsnakeConfiguration {
 
   @Bean
   WordsnakeConsumer wordsnakeConsumer() {
-    WordsnakeConsumer wordsnakeConsumer = new WordsnakeConsumer(config, kafka, consumerConfig);
+    WordsnakeConsumer wordsnakeConsumer = new WordsnakeConsumer(config, consumerConfig,
+        kafkaConsumer());
     wordsnakeConsumer.consume();
 
     return wordsnakeConsumer;

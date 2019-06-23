@@ -1,16 +1,15 @@
 spring:
   kafka:
-    bootstrap-servers: cloudera.softec.sk:9092
+    bootstrap-servers: broker:9092
     client-id: wordsnake
 
 app:
   streams-config:
     application-id: wordsnake-0.1
     input-topic: input
-    output-topic: output
     output-raw-topic: output_raw
     output-processed-topic: output_processed
     error-topic: error
     allow-jammed-snake: true
   consumer:
-    output-file: /tmp/wordsnakes.txt
+    output-file: /tmp/wordsnakes/wordsnakes.txt

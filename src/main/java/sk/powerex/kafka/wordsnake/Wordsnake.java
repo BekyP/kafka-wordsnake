@@ -18,6 +18,7 @@ class Wordsnake {
   private static final int LEFT = 1;
   private static final int UP = 2;
   private static final int DOWN = 3;
+  private static final Random random = new Random();
   private final List<String> words;
   private final Boolean allowJammedSnake;
   private SnakeMap snakeMap;
@@ -32,64 +33,25 @@ class Wordsnake {
     this.allowJammedSnake = allowJammedSnake;
   }
 
-  // TODO reduce complexity
   SnakeMap createSnakeMap() {
     IntStream.range(0, words.size()).forEach(i -> {
           if (snakeMap.isFinished()) {
             return;
           }
 
-          Map<Integer, Boolean> directions;
-
           String w = words.get(i);
           switch (getDirection(i)) {
             case RIGHT:
-              directions = freeHorizontalDirections(w);
-              if (directions.getOrDefault(RIGHT, false)) {
-                turnRight(w);
-              } else if (directions.getOrDefault(LEFT, false)) {
-                turnLeft(w);
-              } else {
-                this.snakeMap.setFinished(true);
-              }
+              right(w);
               break;
             case LEFT:
-              directions = freeHorizontalDirections(w);
-              if (directions.getOrDefault(LEFT, false)) {
-                turnLeft(w);
-              } else if (directions.getOrDefault(RIGHT, false)) {
-                turnRight(w);
-              } else {
-                this.snakeMap.setFinished(true);
-              }
+              left(w);
               break;
             case UP:
-              if (!allowJammedSnake) {
-                turnDown(w);
-                break;
-              }
-              directions = freeVerticalDirections(w);
-              if (directions.getOrDefault(UP, false)) {
-                turnUp(w);
-              } else if (directions.getOrDefault(DOWN, false)) {
-                turnDown(w);
-              } else {
-                this.snakeMap.setFinished(true);
-              }
+              up(w);
               break;
             case DOWN:
-              if (!allowJammedSnake) {
-                turnDown(w);
-                break;
-              }
-              directions = freeVerticalDirections(w);
-              if (directions.getOrDefault(DOWN, false)) {
-                turnDown(w);
-              } else if (directions.getOrDefault(UP, false)) {
-                turnUp(w);
-              } else {
-                this.snakeMap.setFinished(true);
-              }
+              down(w);
               break;
             default:
               log.error("Invalid direction");
@@ -102,8 +64,59 @@ class Wordsnake {
     return this.snakeMap;
   }
 
+  private void down(String w) {
+    if (!allowJammedSnake) {
+      turnDown(w);
+      return;
+    }
+    Map<Integer, Boolean> directions = freeVerticalDirections(w);
+    if (directions.getOrDefault(DOWN, false)) {
+      turnDown(w);
+    } else if (directions.getOrDefault(UP, false)) {
+      turnUp(w);
+    } else {
+      this.snakeMap.setFinished(true);
+    }
+  }
+
+  private void up(String w) {
+    if (!allowJammedSnake) {
+      turnDown(w);
+      return;
+    }
+    Map<Integer, Boolean> directions = freeVerticalDirections(w);
+    if (directions.getOrDefault(UP, false)) {
+      turnUp(w);
+    } else if (directions.getOrDefault(DOWN, false)) {
+      turnDown(w);
+    } else {
+      this.snakeMap.setFinished(true);
+    }
+  }
+
+  private void left(String w) {
+    Map<Integer, Boolean> directions = freeHorizontalDirections(w);
+    if (directions.getOrDefault(LEFT, false)) {
+      turnLeft(w);
+    } else if (directions.getOrDefault(RIGHT, false)) {
+      turnRight(w);
+    } else {
+      this.snakeMap.setFinished(true);
+    }
+  }
+
+  private void right(String w) {
+    Map<Integer, Boolean> directions = freeHorizontalDirections(w);
+    if (directions.getOrDefault(RIGHT, false)) {
+      turnRight(w);
+    } else if (directions.getOrDefault(LEFT, false)) {
+      turnLeft(w);
+    } else {
+      this.snakeMap.setFinished(true);
+    }
+  }
+
   private int getDirection(int i) {
-    Random random = new Random();
     if (i % 2 == 0) {
       return random.nextInt(2);
     } else {
@@ -129,7 +142,7 @@ class Wordsnake {
     //up
     if (coords.getY() - (word.length() - 1) >= 0) {
       long freeSpaceUp = IntStream.iterate(coords.getY() - 1, i -> i - 1)
-          .limit(word.length() - 1)
+          .limit(word.length() - 1L)
           .filter(y -> currentMap[y][coords.getX()] == ' ')
           .count();
 
@@ -159,7 +172,7 @@ class Wordsnake {
     //left
     if (coords.getX() - (word.length() - 1) >= 0) {
       long freeSpaceLeft = IntStream.iterate(coords.getX() - 1, i -> i - 1)
-          .limit(word.length() - 1)
+          .limit(word.length() - 1L)
           .filter(x -> currentMap[coords.getY()][x] == ' ')
           .count();
 

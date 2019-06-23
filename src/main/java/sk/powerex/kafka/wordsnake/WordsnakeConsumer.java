@@ -9,20 +9,16 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.time.Duration;
-import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.errors.WakeupException;
-import org.apache.kafka.common.serialization.StringDeserializer;
-import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
 import sk.powerex.kafka.wordsnake.config.KafkaConfig;
 import sk.powerex.kafka.wordsnake.config.KafkaConsumerConfig;
 
@@ -31,15 +27,14 @@ import sk.powerex.kafka.wordsnake.config.KafkaConsumerConfig;
 @Slf4j
 public class WordsnakeConsumer {
 
-  private KafkaConfig config;
-  private KafkaProperties kafkaProperties;
-  private KafkaConsumerConfig kafkaConsumerConfig;
-
+  private final KafkaConfig config;
+  private final KafkaConsumerConfig kafkaConsumerConfig;
+  private final KafkaConsumer<String, String> consumer;
 
   void consume() {
-    KafkaConsumer<String, String> consumer = createKafkaConsumer();
 
-    Set<TopicPartition> topicPartitions = consumer.partitionsFor(config.getOutputProcessedTopic()).stream()
+    Set<TopicPartition> topicPartitions = consumer.partitionsFor(config.getOutputProcessedTopic())
+        .stream()
         .map(p -> new TopicPartition(p.topic(), p.partition()))
         .collect(toSet());
 
@@ -53,20 +48,18 @@ public class WordsnakeConsumer {
 
         records.forEach(r -> {
           try {
-            Path file = Paths.get(kafkaConsumerConfig.getOutputFile());
+            Path path = Paths.get(kafkaConsumerConfig.getOutputFile());
             Files
-                .write(Paths.get(kafkaConsumerConfig.getOutputFile()), prepareToWrite(r).getBytes(),
-                    Files.exists(file) ? StandardOpenOption.APPEND : StandardOpenOption.CREATE);
+                .write(path, prepareToWrite(r).getBytes(),
+                    path.toFile().exists() ? StandardOpenOption.APPEND : StandardOpenOption.CREATE);
           } catch (IOException e) {
-            log.error(e.getMessage());
+            log.error("writing to file failed", e);
           }
 
-
-            /*
-            log
-            .info("{}: offset = {}, key = {}, value = {}", config.getOutputTopic(), r.offset(),
-                r.key(),
-                r.value()));*/
+          log.debug("{}: offset = {}, key = {}, value = {}", config.getOutputProcessedTopic(),
+              r.offset(),
+              r.key(),
+              r.value());
           //TODO fix errors
           Uninterruptibles.sleepUninterruptibly(1, TimeUnit.SECONDS);
 
@@ -82,15 +75,5 @@ public class WordsnakeConsumer {
   private String prepareToWrite(ConsumerRecord<String, String> record) {
     return String
         .format("key: %s, snake: %n%s %n -----------------%n", record.key(), record.value());
-  }
-
-  private <K, V> KafkaConsumer<K, V> createKafkaConsumer() {
-    Properties p = new Properties();
-    p.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaProperties.getBootstrapServers());
-    p.put(ConsumerConfig.GROUP_ID_CONFIG, config.getApplicationId());
-    p.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
-    p.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
-
-    return new KafkaConsumer<>(p);
   }
 }

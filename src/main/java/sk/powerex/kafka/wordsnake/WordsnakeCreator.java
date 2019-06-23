@@ -1,9 +1,5 @@
 package sk.powerex.kafka.wordsnake;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.IntStream;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -23,7 +19,6 @@ import sk.powerex.kafka.wordsnake.utils.Sentence;
 public class WordsnakeCreator {
 
   private static final StreamsBuilder streamsBuilder = new StreamsBuilder();
-  //private static final Sentence sentence = new Sentence();
   private final KafkaConfig config;
   private final KafkaStreamsConfiguration kafkaStreamsConfiguration;
 
@@ -51,30 +46,8 @@ public class WordsnakeCreator {
     streams.start();
   }
 
-  /*
-  private String cleanUpSentence(String sentence) {
-    return sentence.toUpperCase().replaceAll("[^a-zA-Z ]+", "").replaceAll("\\s+", " ");
-  }
-
-  private String removeInvalidWords(String sentence) {
-    List<String> words = Arrays.asList(sentence.split(" "));
-    List<String> validWords = new ArrayList<>();
-    Character last = words.get(0).charAt(-1);
-    validWords.add(words.get(0));
-
-    IntStream.range(1, words.size()).forEach(i -> {
-      String word = words.get(i);
-      String previous = words.get(i - 1);
-      if (word.charAt(0) == previous.charAt(previous.length() - 1)) {
-        validWords.add(word);
-      }
-    });
-
-    return String.join(" ", validWords);
-  }*/
-
   private boolean validateSentence(String sentence) {
-    return Arrays.asList(sentence.split(" ")).size() != 1;
+    return sentence.split(" ").length != 1;
   }
 
 }
