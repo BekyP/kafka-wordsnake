@@ -6,8 +6,10 @@ spring:
 app:
   streams-config:
     applicationId: wordsnake-0.1
-    inputTopic: input
-    outputTopic: output
+    input-topic: input
+    output-raw-topic: output_raw
+    output-processed-topic: output_processed
+    error-topic: error
     allow-jammed-snake: true
   consumer:
     output-file: /tmp/wordsnakes.txt
