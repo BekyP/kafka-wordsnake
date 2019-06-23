@@ -99,36 +99,6 @@ class WordsnakeKafkaIntegrationTest {
     log.info("test data sent");
 
   }
-/*
-  private static Properties producerProps() {
-    Properties props = new Properties();
-    props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, System.getProperty("test.kafka.brokers"));
-    props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
-    props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
-
-    return props;
-  }
-
-  private static Properties consumerProps() {
-    Properties props = new Properties();
-    props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, System.getProperty("test.kafka.brokers"));
-    props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
-    props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
-    props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "false");
-    props.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, "100");
-
-    return props;
-  }
-
-  private static KafkaConsumer<String, String> getKafkaConsumerOld(String topic) {
-    Set<TopicPartition> topicPartition = singleton(new TopicPartition(topic, 0));
-
-    KafkaConsumer<String, String> consumer = new KafkaConsumer<>(consumerProps());
-    consumer.assign(topicPartition);
-    consumer.seekToBeginning(topicPartition);
-
-    return consumer;
-  } */
 
   private Consumer<String, String> getKafkaConsumer(String topic) {
     Map<String, Object> configs = new HashMap<>(
@@ -190,9 +160,8 @@ class WordsnakeKafkaIntegrationTest {
 
     assertThat(records.isEmpty()).isFalse();
     assertThat(records.count()).isEqualTo(2);
-    StreamSupport.stream(records.spliterator(), false).forEach(r -> {
-      assertThat(r.key()).isEqualTo(VALID_SENTENCE);
-    });
+    StreamSupport.stream(records.spliterator(), false)
+        .forEach(r -> assertThat(r.key()).isEqualTo(VALID_SENTENCE));
 
   }
 
