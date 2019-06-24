@@ -4,21 +4,24 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 @Data
-@NoArgsConstructor
+@RequiredArgsConstructor
 public class Sentence {
 
   private Character lastCharacterOfValidWord;
+  private final String rawSentence;
+  private String processedSentence;
 
-  private String cleanUpRawSentence(String sentence) {
-    return sentence.toUpperCase().replaceAll("[^a-zA-Z ]+", "").replaceAll("\\s+", " ");
+  private void cleanUpRawSentence() {
+    processedSentence = rawSentence.toUpperCase().replaceAll("[^a-zA-Z ]+", "")
+        .replaceAll("\\s+", " ");
   }
 
-  private String removeInvalidWords(String sentence) {
+  private void removeInvalidWords() {
     List<String> validWords = new ArrayList<>();
-    List<String> words = Arrays.asList(sentence.split(" "));
+    List<String> words = Arrays.asList(processedSentence.split(" "));
 
     words.forEach(w -> {
       if (lastCharacterOfValidWord == null || lastCharacterOfValidWord == w.charAt(0)) {
@@ -27,10 +30,11 @@ public class Sentence {
       }
     });
 
-    return String.join(" ", validWords);
+    processedSentence = String.join(" ", validWords);
   }
 
-  public String getProcessedSentence(String sentence) {
-    return removeInvalidWords(cleanUpRawSentence(sentence));
+  public void processSentence() {
+    cleanUpRawSentence();
+    removeInvalidWords();
   }
 }

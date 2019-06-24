@@ -8,9 +8,13 @@ import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.kstream.KStream;
+import org.apache.kafka.streams.kstream.Transformer;
+import org.apache.kafka.streams.processor.ProcessorContext;
+import org.slf4j.event.Level;
 import org.springframework.kafka.config.KafkaStreamsConfiguration;
 import sk.powerex.kafka.wordsnake.config.KafkaConfig;
 import sk.powerex.kafka.wordsnake.utils.Sentence;
+import sk.powerex.kafka.wordsnake.utils.SparseLog;
 
 @Data
 @Slf4j
@@ -22,22 +26,33 @@ public class WordsnakeCreator {
   private final KafkaConfig config;
   private final KafkaStreamsConfiguration kafkaStreamsConfiguration;
 
-
   void setupTopology() {
 
-    KStream<String, String> wordsnakeStream = streamsBuilder.stream(config.getInputTopic())
-        .peek((k, v) -> log.info("data: " + k + " - " + v))
+    KStream<String, String> wordsnakeStream = streamsBuilder
+        .stream(config.getInputTopic())
         .mapValues(Object::toString)
-        .map((k, v) -> new KeyValue<>(v, new Sentence().getProcessedSentence(v)));
-
-    wordsnakeStream.filter((k, v) -> !validateSentence(v)).to(config.getErrorTopic());
+        .peek((k, v) -> log.debug("{} - value: {}", config.getInputTopic(), v))
+        .transform(SentenceTransformer::new);
 
     KStream<String, String> outputStream = wordsnakeStream.filter((k, v) -> validateSentence(v));
 
-    outputStream.to(config.getOutputRawTopic());
+    // error output - non valid sentences (not possible to construct snake, onyl 1 word, ...)
+    wordsnakeStream.filterNot((k, v) -> validateSentence(v))
+        .peek((k, v) -> SparseLog.log(config.getErrorTopic(), k, v, config.getLogDensity(),
+            Level.INFO))
+        .to(config.getErrorTopic());
 
-    outputStream.map((k, v) -> new KeyValue<>(k,
-        new Wordsnake(v, config.getAllowJammedSnake()).createSnakeMap().getStringMap()))
+    // raw output - only valid words, not snake
+    outputStream
+        .peek((k, v) -> SparseLog.log(config.getOutputRawTopic(), k, v, config.getLogDensity(),
+            Level.INFO))
+        .to(config.getOutputRawTopic());
+
+    // processed output - snake
+    outputStream.transform(WordsnakeTransformer::new)
+        .peek(
+            (k, v) -> SparseLog.log(config.getOutputProcessedTopic(), k, v, config.getLogDensity(),
+                Level.DEBUG))
         .to(config.getOutputProcessedTopic());
 
     KafkaStreams streams = new KafkaStreams(streamsBuilder.build(),
@@ -50,4 +65,44 @@ public class WordsnakeCreator {
     return sentence.split(" ").length != 1;
   }
 
+  private class SentenceTransformer implements
+      Transformer<Object, String, KeyValue<String, String>> {
+
+    @Override
+    public void init(ProcessorContext processorContext) {
+      // empty init, not working with state stores or context
+    }
+
+    @Override
+    public KeyValue<String, String> transform(Object o, String value) {
+      Sentence sentence = new Sentence(value);
+      sentence.processSentence();
+      return new KeyValue<>(value, sentence.getProcessedSentence());
+    }
+
+    @Override
+    public void close() {
+      // empty close
+    }
+  }
+
+  private class WordsnakeTransformer implements
+      Transformer<String, String, KeyValue<String, String>> {
+
+    @Override
+    public void init(ProcessorContext processorContext) {
+      // empty init, not working with state stores or context
+    }
+
+    @Override
+    public KeyValue<String, String> transform(String key, String value) {
+      return new KeyValue<>(key,
+          new Wordsnake(value, config.getAllowJammedSnake()).createSnakeMap().getStringMap());
+    }
+
+    @Override
+    public void close() {
+      // empty close
+    }
+  }
 }

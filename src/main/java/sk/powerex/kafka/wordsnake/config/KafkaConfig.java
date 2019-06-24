@@ -47,4 +47,10 @@ public class KafkaConfig {
    * allow jammed snake
    */
   private Boolean allowJammedSnake = false;
+
+  /**
+   * log density
+   */
+
+  private int logDensity = 1000;
 }

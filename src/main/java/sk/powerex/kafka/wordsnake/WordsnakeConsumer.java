@@ -14,8 +14,10 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.errors.WakeupException;
+import org.slf4j.event.Level;
 import sk.powerex.kafka.wordsnake.config.KafkaConfig;
 import sk.powerex.kafka.wordsnake.config.KafkaConsumerConfig;
+import sk.powerex.kafka.wordsnake.utils.SparseLog;
 
 @Data
 @AllArgsConstructor
@@ -28,6 +30,7 @@ public class WordsnakeConsumer {
 
   void consume() {
     consumer.subscribe(Collections.singleton(config.getOutputProcessedTopic()));
+    Path path = Paths.get(kafkaConsumerConfig.getOutputFile());
 
     try {
       while (!kafkaConsumerConfig.isTest()) {
@@ -35,7 +38,6 @@ public class WordsnakeConsumer {
 
         records.forEach(r -> {
           try {
-            Path path = Paths.get(kafkaConsumerConfig.getOutputFile());
             Files
                 .write(path, prepareToWrite(r).getBytes(),
                     path.toFile().exists() ? StandardOpenOption.APPEND : StandardOpenOption.CREATE);
@@ -43,10 +45,9 @@ public class WordsnakeConsumer {
             log.error("writing to file failed", e);
           }
 
-          log.debug("{}: offset = {}, key = {}, value = {}", config.getOutputProcessedTopic(),
-              r.offset(),
-              r.key(),
-              r.value());
+          SparseLog.log(config.getOutputProcessedTopic(), r.key(), r.value(),
+              kafkaConsumerConfig.getLogDensity(),
+              Level.DEBUG);
         });
       }
     } catch (WakeupException e) {

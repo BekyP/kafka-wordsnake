@@ -24,4 +24,9 @@ public class KafkaConsumerConfig {
    */
 
   private boolean test = false;
+
+  /**
+   * log density
+   */
+  private int logDensity = 1000;
 }

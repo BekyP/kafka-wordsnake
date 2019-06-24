@@ -6,23 +6,23 @@ import org.junit.jupiter.api.Test;
 
 class SentenceTest {
 
+
   @Test
   void processValidSentece() {
-    Sentence sentence = new Sentence();
     String testInput = "TEST TOPIC *_SEND !!COnsUME##";
+    Sentence sentence = new Sentence(testInput);
     String expected = "TEST TOPIC CONSUME";
-    String actual = sentence.getProcessedSentence(testInput);
-    assertThat(actual).isEqualTo(expected);
-
+    sentence.processSentence();
+    assertThat(sentence.getProcessedSentence()).isEqualTo(expected);
   }
 
   @Test
   void processInvalidSentence() {
-    Sentence sentence = new Sentence();
     String testInput = "TEST dsfsd *_SEdsffsdND !!OnsUME##";
+    Sentence sentence = new Sentence(testInput);
     String expected = "TEST";
 
-    String actual = sentence.getProcessedSentence(testInput);
-    assertThat(actual).isEqualTo(expected);
+    sentence.processSentence();
+    assertThat(sentence.getProcessedSentence()).isEqualTo(expected);
   }
 }
