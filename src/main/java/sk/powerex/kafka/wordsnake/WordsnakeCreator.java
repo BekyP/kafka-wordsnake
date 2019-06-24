@@ -34,31 +34,36 @@ public class WordsnakeCreator {
         .peek((k, v) -> log.debug("{} - value: {}", config.getInputTopic(), v))
         .transform(SentenceTransformer::new);
 
-    KStream<String, String> outputStream = wordsnakeStream.filter((k, v) -> validateSentence(v));
+    handleInvalidSentences(wordsnakeStream.filterNot((k, v) -> validateSentence(v)));
 
-    // error output - non valid sentences (not possible to construct snake, onyl 1 word, ...)
-    wordsnakeStream.filterNot((k, v) -> validateSentence(v))
-        .peek((k, v) -> SparseLog.log(config.getErrorTopic(), k, v, config.getLogDensity(),
-            Level.INFO))
-        .to(config.getErrorTopic());
-
-    // raw output - only valid words, not snake
-    outputStream
-        .peek((k, v) -> SparseLog.log(config.getOutputRawTopic(), k, v, config.getLogDensity(),
-            Level.INFO))
-        .to(config.getOutputRawTopic());
-
-    // processed output - snake
-    outputStream.transform(WordsnakeTransformer::new)
-        .peek(
-            (k, v) -> SparseLog.log(config.getOutputProcessedTopic(), k, v, config.getLogDensity(),
-                Level.DEBUG))
-        .to(config.getOutputProcessedTopic());
+    handleValidSentences(wordsnakeStream.filter((k, v) -> validateSentence(v)));
 
     KafkaStreams streams = new KafkaStreams(streamsBuilder.build(),
         kafkaStreamsConfiguration.asProperties());
 
     streams.start();
+  }
+
+  private void handleValidSentences(KStream<String, String> stream) {
+    // raw output - only valid words, not snake
+    stream.peek((k, v) -> SparseLog.log(config.getOutputRawTopic(), k, v, config.getLogDensity(),
+        Level.INFO))
+        .to(config.getOutputRawTopic());
+
+    // processed output - snake
+    stream.transform(WordsnakeTransformer::new)
+        .peek(
+            (k, v) -> SparseLog.log(config.getOutputProcessedTopic(), k, v, config.getLogDensity(),
+                Level.DEBUG))
+        .to(config.getOutputProcessedTopic());
+  }
+
+  private void handleInvalidSentences(KStream<String, String> stream) {
+    // error output - non valid sentences (not possible to construct snake, only 1 word, ...)
+    stream.filterNot((k, v) -> validateSentence(v))
+        .peek((k, v) -> SparseLog.log(config.getErrorTopic(), k, v, config.getLogDensity(),
+            Level.INFO))
+        .to(config.getErrorTopic());
   }
 
   private boolean validateSentence(String sentence) {
