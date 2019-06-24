@@ -26,7 +26,10 @@ class Wordsnake {
   Wordsnake(String sentence, Boolean allowJammedSnake) {
     this.words = Arrays.asList(sentence.split(" "));
     int sentenceLength = sentence.length();
+
     Character[][] map = new Character[sentenceLength][sentenceLength];
+
+    // init empty map
     Arrays.stream(map).forEach(x -> Arrays.fill(x, ' '));
 
     this.snakeMap = new SnakeMap(new Coords(0, 0), map, sentenceLength, false);
@@ -64,7 +67,10 @@ class Wordsnake {
     return this.snakeMap;
   }
 
+  // TODO movement to separate class
+
   private void down(String w) {
+    // if jam is not allowed, go only down, left or right
     if (!allowJammedSnake) {
       turnDown(w);
       return;
@@ -75,11 +81,13 @@ class Wordsnake {
     } else if (directions.getOrDefault(UP, false)) {
       turnUp(w);
     } else {
+      // jammed snake, nowhere to move - finish
       this.snakeMap.setFinished(true);
     }
   }
 
   private void up(String w) {
+    // if jam is not allowed, go only down, left or right
     if (!allowJammedSnake) {
       turnDown(w);
       return;
@@ -90,6 +98,7 @@ class Wordsnake {
     } else if (directions.getOrDefault(DOWN, false)) {
       turnDown(w);
     } else {
+      // jammed snake, nowhere to move - finish
       this.snakeMap.setFinished(true);
     }
   }
@@ -101,6 +110,7 @@ class Wordsnake {
     } else if (directions.getOrDefault(RIGHT, false)) {
       turnRight(w);
     } else {
+      // jammed snake, nowhere to move - finish
       this.snakeMap.setFinished(true);
     }
   }
@@ -112,14 +122,15 @@ class Wordsnake {
     } else if (directions.getOrDefault(LEFT, false)) {
       turnLeft(w);
     } else {
+      // jammed snake, nowhere to move - finish
       this.snakeMap.setFinished(true);
     }
   }
 
   private int getDirection(int i) {
-    if (i % 2 == 0) {
+    if (i % 2 == 0) { // horizontal - movement left or right
       return random.nextInt(2);
-    } else {
+    } else {  // vertical - movement up or down
       return random.nextInt(2) + 2;
     }
   }
@@ -130,6 +141,7 @@ class Wordsnake {
 
     Map<Integer, Boolean> freeDirections = new HashMap<>();
 
+    // checking free space for word
     //down
     long freeSpaceDown = IntStream
         .range(coords.getY() + 1, coords.getY() + word.length())
@@ -160,6 +172,7 @@ class Wordsnake {
 
     Map<Integer, Boolean> freeDirections = new HashMap<>();
 
+    // checking free space for word
     //right
     long freeSpaceRight = IntStream
         .range(coords.getX() + 1, coords.getX() + word.length())
