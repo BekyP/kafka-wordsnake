@@ -55,7 +55,7 @@ class WordsnakeKafkaIntegrationTest {
 
   @BeforeAll
   static void setup() {
-    // toto je ta kniznica schopna pracovat s avro formatom
+    // toto je ta kniznica schopna pracovat s avro formatom bez vacsich problemov
     kCluster = new KCluster(3, false, AvroCompatibilityLevel.BACKWARD);
 
     System.setProperty(TEST_KAFKA_BROKERS_PROPERTY, kCluster.BrokersList());
@@ -91,7 +91,7 @@ class WordsnakeKafkaIntegrationTest {
 
     // create a Kafka template
     KafkaTemplate<String, String> template = new KafkaTemplate<>(producerFactory);
-    template.setDefaultTopic(config.getInputTopic()); // set the default topic to send to
+    template.setDefaultTopic(config.getInputTopic());
 
     IntStream.range(0, 2).forEach(i -> template.sendDefault(VALID_SENTENCE));
     IntStream.range(0, 2).forEach(i -> template.sendDefault(INVALID_SENTENCE));
@@ -121,7 +121,8 @@ class WordsnakeKafkaIntegrationTest {
 
     assertThat(records.isEmpty()).isFalse();
     long validCount = StreamSupport
-        .stream(records.spliterator(), false).filter(r -> r.value().equals(VALID_SENTENCE)).count();
+        .stream(records.spliterator(), false).filter(r -> r.value().equals(VALID_SENTENCE))
+        .count();
 
     long invalidCount = StreamSupport
         .stream(records.spliterator(), false).filter(r -> r.value().equals(INVALID_SENTENCE))
@@ -137,13 +138,14 @@ class WordsnakeKafkaIntegrationTest {
         .poll(Duration.ofMillis(100));
 
     records.forEach(r -> log
-        .info("{}: offset = {}, {} = {}", config.getOutputRawTopic(), r.offset(), r.key(),
+        .debug("{}: offset = {}, {} = {}", config.getOutputRawTopic(), r.offset(), r.key(),
             r.value()));
 
     assertThat(records.isEmpty()).isFalse();
-    assertThat(records.count()).isEqualTo(2);
+    assertThat(records.count()).isEqualTo(2); // only 2 valid records
+
     StreamSupport.stream(records.spliterator(), false).forEach(r -> {
-      assertThat(r.key()).isEqualTo(VALID_SENTENCE);
+      assertThat(r.key()).isEqualTo(VALID_SENTENCE); // key should be raw input sentence
       assertThat(r.value()).isEqualTo(EXPECTED_OUTPUT_SENTENCE);
     });
 
@@ -155,13 +157,16 @@ class WordsnakeKafkaIntegrationTest {
         .poll(Duration.ofMillis(100));
 
     records.forEach(r -> log
-        .info("{}: offset = {}, {} = {}", config.getOutputProcessedTopic(), r.offset(), r.key(),
+        .debug("{}: offset = {}, {} = {}", config.getOutputProcessedTopic(), r.offset(), r.key(),
             r.value()));
 
     assertThat(records.isEmpty()).isFalse();
-    assertThat(records.count()).isEqualTo(2);
-    StreamSupport.stream(records.spliterator(), false)
-        .forEach(r -> assertThat(r.key()).isEqualTo(VALID_SENTENCE));
+    assertThat(records.count()).isEqualTo(2); // only 2 valid records
+
+    StreamSupport.stream(records.spliterator(), false).forEach(
+        // testing only key, value is snake map with random turns
+        // key should be raw input sentence
+        r -> assertThat(r.key()).isEqualTo(VALID_SENTENCE));
 
   }
 
@@ -171,9 +176,9 @@ class WordsnakeKafkaIntegrationTest {
         .poll(Duration.ofMillis(100));
 
     assertThat(records.isEmpty()).isFalse();
-    assertThat(records.count()).isEqualTo(2);
+    assertThat(records.count()).isEqualTo(2); // only 2 invalid records
     StreamSupport.stream(records.spliterator(), false).forEach(r -> {
-      assertThat(r.key()).isEqualTo(INVALID_SENTENCE);
+      assertThat(r.key()).isEqualTo(INVALID_SENTENCE); // key should be raw input sentence
       assertThat(r.value()).isEqualTo(EXPECTED_ERROR_SENTENCE);
     });
   }

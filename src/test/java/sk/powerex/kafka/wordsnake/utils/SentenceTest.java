@@ -7,7 +7,7 @@ import org.junit.jupiter.api.Test;
 class SentenceTest {
 
   @Test
-  void processValidSentece(){
+  void processValidSentece() {
     Sentence sentence = new Sentence();
     String testInput = "TEST TOPIC *_SEND !!COnsUME##";
     String expected = "TEST TOPIC CONSUME";
@@ -17,7 +17,7 @@ class SentenceTest {
   }
 
   @Test
-  void processInvalidSentence(){
+  void processInvalidSentence() {
     Sentence sentence = new Sentence();
     String testInput = "TEST dsfsd *_SEdsffsdND !!OnsUME##";
     String expected = "TEST";
