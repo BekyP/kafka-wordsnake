@@ -43,21 +43,19 @@ class Wordsnake {
           }
 
           String w = words.get(i);
-          switch (getDirection(i)) {
+          int direction = getDirection(i);
+
+          switch (direction) {
             case RIGHT:
-              right(w);
-              break;
             case LEFT:
-              left(w);
+              horizontalMove(w, direction);
               break;
             case UP:
-              up(w);
-              break;
             case DOWN:
-              down(w);
+              verticalMove(w, direction);
               break;
             default:
-              log.error("Invalid direction");
+              log.error("Invalid direction {}", direction);
               this.snakeMap.setFinished(true);
               break;
           }
@@ -69,60 +67,48 @@ class Wordsnake {
 
   // TODO movement to separate class
 
-  private void down(String w) {
-    // if jam is not allowed, go only down, left or right
+  private void verticalMove(String w, int generatedDirection) {
     if (!allowJammedSnake) {
       turnDown(w);
       return;
     }
     Map<Integer, Boolean> directions = freeVerticalDirections(w);
-    if (directions.getOrDefault(DOWN, false)) {
+
+    // wants to go down and can go down - go down
+    if (generatedDirection == DOWN && directions.getOrDefault(DOWN, false)) {
       turnDown(w);
-    } else if (directions.getOrDefault(UP, false)) {
+    } //  wants to go down but can`t go down - go up
+    else if (generatedDirection == DOWN && directions.getOrDefault(UP, false)) {
       turnUp(w);
-    } else {
-      // jammed snake, nowhere to move - finish
-      this.snakeMap.setFinished(true);
-    }
-  }
-
-  private void up(String w) {
-    // if jam is not allowed, go only down, left or right
-    if (!allowJammedSnake) {
-      turnDown(w);
-      return;
-    }
-    Map<Integer, Boolean> directions = freeVerticalDirections(w);
-    if (directions.getOrDefault(UP, false)) {
+    } // wants to go up and can go up - go up
+    else if (generatedDirection == UP && directions.getOrDefault(UP, false)) {
       turnUp(w);
-    } else if (directions.getOrDefault(DOWN, false)) {
+    } // wants to go up but can`t go up - go down
+    else if (generatedDirection == UP && directions.getOrDefault(DOWN, false)) {
       turnDown(w);
-    } else {
-      // jammed snake, nowhere to move - finish
+    } // jammed snake, nowhere to move - finish
+    else {
       this.snakeMap.setFinished(true);
     }
   }
 
-  private void left(String w) {
+  private void horizontalMove(String w, int generatedDirection) {
     Map<Integer, Boolean> directions = freeHorizontalDirections(w);
-    if (directions.getOrDefault(LEFT, false)) {
-      turnLeft(w);
-    } else if (directions.getOrDefault(RIGHT, false)) {
-      turnRight(w);
-    } else {
-      // jammed snake, nowhere to move - finish
-      this.snakeMap.setFinished(true);
-    }
-  }
 
-  private void right(String w) {
-    Map<Integer, Boolean> directions = freeHorizontalDirections(w);
-    if (directions.getOrDefault(RIGHT, false)) {
+    // wants to go right and can go right - go right
+    if (generatedDirection == RIGHT && directions.getOrDefault(RIGHT, false)) {
       turnRight(w);
-    } else if (directions.getOrDefault(LEFT, false)) {
+    } // wants to go right but can`t go right - go left
+    else if (generatedDirection == RIGHT && directions.getOrDefault(LEFT, false)) {
       turnLeft(w);
-    } else {
-      // jammed snake, nowhere to move - finish
+    } //wants to go left and can go left - go left
+    else if (generatedDirection == LEFT && directions.getOrDefault(LEFT, false)) {
+      turnLeft(w);
+    } // wants to go left but can`t go left - go right
+    else if (generatedDirection == LEFT && directions.getOrDefault(RIGHT, false)) {
+      turnRight(w);
+    } // jammed snake, nowhere to move - finish
+    else {
       this.snakeMap.setFinished(true);
     }
   }
