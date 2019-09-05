@@ -1,4 +1,4 @@
-# kafka-wordsnake
+# kafka-wordsnake [![Codacy Badge](https://api.codacy.com/project/badge/Grade/c8e0e5b909974bf0a7db8c36d4e9e391)](https://www.codacy.com/app/BekyP/kafka-wordsnake?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=BekyP/kafka-wordsnake&amp;utm_campaign=Badge_Grade)
 
 - application for creating wordsnakes using kafka and kafka streams:
 
