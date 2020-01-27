@@ -11,7 +11,7 @@
   </parent>
   <groupId>sk.powerex.wordsnake</groupId>
   <artifactId>kafka-wordsnake</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
+  <version>1.0.0</version>
   <name>kafka-wordsnake</name>
   <description>Demo project for Spring Boot</description>
 
@@ -216,4 +216,12 @@
     </plugins>
   </build>
 
+  <distributionManagement>
+    <repository>
+      <id>github</id>
+      <name>GitHub BekyP Apache Maven Packages</name>
+      <url>https://maven.pkg.github.com/BekyP/kafka-wordsnake</url>
+    </repository>
+  </distributionManagement>
+  
 </project>
