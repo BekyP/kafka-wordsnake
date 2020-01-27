@@ -43,6 +43,6 @@ jobs:
     - name: Build Docker image
       uses: flownative/action-docker-build@v1
       with:
-        tag_ref: ${{ github.ref }}
+        tag_ref: latest
         image_name: bekyp/kafka_wordsnake
         registry_password: ${{ secrets.GITHUB_TOKEN }}
