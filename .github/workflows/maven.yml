@@ -30,8 +30,11 @@ jobs:
     #  env:
     #    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     #  run: mvn -B -e -Dmaven.wagon.http.pool=false clean deploy
-      
+    - name: Build docker image
+      run: docker build -t kafka_wordsnake . 
+    - name: Tag docker image
+      run: docker tag kafka_wordsnake docker.pkg.github.com/bekyp/kafka_wordsnake/kafka_wordsnake:latest
     - name: Deploy to docker registry
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: docker build -t kafka_wordsnake . | docker tag kafka_wordsnake docker.pkg.github.com/bekyp/kafka_wordsnake/kafka_wordsnake:latest | docker push docker.pkg.github.com/bekyp/kafka_wordsnake/kafka_wordsnake:latest
+      run: docker push docker.pkg.github.com/bekyp/kafka_wordsnake/kafka_wordsnake:latest
