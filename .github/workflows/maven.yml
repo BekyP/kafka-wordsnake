@@ -24,4 +24,6 @@ jobs:
     - name: Build with Maven
       run: mvn -B package --file pom.xml
     - name: Deploy with maven
-      run: mvn deploy -Dregistry=https://maven.pkg.github.com/BekyP -Dtoken=GH_TOKEN
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: mvn -B -e -Dmaven.wagon.http.pool=false clean deploy
