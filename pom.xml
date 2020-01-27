@@ -216,4 +216,11 @@
     </plugins>
   </build>
   
+  <distributionManagement>
+    <repository>
+      <id>github</id>
+      <name>GitHub BekyP Apache Maven Packages</name>
+      <url>https://maven.pkg.github.com/BekyP/kafka-wordsnake</url>
+    </repository>
+  </distributionManagement>
 </project>
